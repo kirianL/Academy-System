@@ -348,8 +348,8 @@ export function ProfileView({
             {/* Top Identity Block */}
             <div className="px-5 sm:px-7 pt-3 pb-6">
               {/* Avatar + Actions Row */}
-              <div className="flex items-start justify-between gap-4">
-                <div className="relative z-10 -mt-12 sm:-mt-14 rounded-full ring-4 ring-white bg-white shadow-xs">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
+                <div className="relative z-10 -mt-12 sm:-mt-14 rounded-full ring-4 ring-white bg-white shadow-xs self-start shrink-0">
                   <NexusAvatar seed={email} size={104} border={false} />
                   {isMe && (
                     <button
@@ -365,7 +365,7 @@ export function ProfileView({
                 </div>
 
                 {/* Right Action Buttons */}
-                <div className="flex items-center gap-2 flex-wrap justify-end">
+                <div className="flex items-center gap-2 flex-wrap">
                   {isMe ? (
                     <>
                       <button
@@ -956,36 +956,37 @@ function AvatarEditorPortal({
               mass: 0.7,
             }}
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-[500px] bg-white rounded-2xl border border-[#E5E4DF] shadow-floating flex flex-col overflow-hidden"
+            className="relative w-full max-w-[500px] max-h-[calc(100dvh-1.5rem)] bg-white rounded-2xl border border-[#E5E4DF] shadow-floating flex flex-col overflow-hidden"
           >
             {/* Clean Studio Header: Avatar libre sin contenedor, minimalista */}
-            <div className="px-5 py-4 bg-white border-b border-[#F1F0EC] flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3.5 min-w-0">
+            <div className="px-4 sm:px-5 py-3.5 sm:py-4 bg-white border-b border-[#F1F0EC] flex items-center justify-between gap-2 sm:gap-3">
+              <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
                 <NexusAvatar
                   seed="mariana-solis-directora"
-                  size={56}
+                  size={48}
                   config={myAvatar}
                   border={false}
+                  className="shrink-0"
                 />
 
                 <div className="min-w-0">
-                  <div className="text-[14px] font-semibold text-[#18181B] leading-tight">
+                  <div className="text-[13.5px] sm:text-[14px] font-semibold text-[#18181B] leading-tight truncate">
                     Diseña tu avatar
                   </div>
-                  <div className="text-[11.5px] text-[#78756E] mt-0.5">
-                    Paso {stepIndex + 1} de {EDITOR_STEPS.length} • {currentStep.label}
+                  <div className="text-[11px] sm:text-[11.5px] text-[#78756E] mt-0.5 truncate">
+                    {currentStep.label} • Paso {stepIndex + 1}/{EDITOR_STEPS.length}
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
                 <button
                   type="button"
                   onClick={randomize}
-                  className="h-7 px-2.5 rounded-lg border border-[#E5E4DF] bg-[#FAF9F6] hover:bg-[#F3F2EE] text-[11.5px] font-medium text-[#18181B] inline-flex items-center gap-1 transition-colors press-scale"
+                  className="h-7 px-2 sm:px-2.5 rounded-lg border border-[#E5E4DF] bg-[#FAF9F6] hover:bg-[#F3F2EE] text-[11.5px] font-medium text-[#18181B] inline-flex items-center gap-1 transition-colors press-scale"
                 >
                   <Shuffle weight="bold" className="w-3 h-3" />
-                  Aleatorio
+                  <span className="hidden sm:inline">Aleatorio</span>
                 </button>
                 <button
                   type="button"
@@ -1007,7 +1008,7 @@ function AvatarEditorPortal({
             </div>
 
             {/* Compact Segmented Step Pills */}
-            <div className="px-5 py-2 bg-[#FAF9F6] border-b border-[#F1F0EC] flex items-center gap-1 overflow-x-auto no-scrollbar">
+            <div className="px-4 sm:px-5 py-2 bg-[#FAF9F6] border-b border-[#F1F0EC] flex items-center gap-1 overflow-x-auto no-scrollbar">
               {EDITOR_STEPS.map((step) => {
                 const isSelected = step.id === activeStepId;
                 return (
@@ -1040,9 +1041,9 @@ function AvatarEditorPortal({
             </div>
 
             {/* Fixed-Height Content Area (Clean options, libre de marcos pesados) */}
-            <div className="p-4 h-[280px] overflow-y-auto no-scrollbar space-y-4">
+            <div className="p-4 max-h-[300px] h-[260px] sm:h-[280px] overflow-y-auto no-scrollbar space-y-4">
               {/* Option Grid */}
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                 {AVATAR_OPTIONS[currentStep.optionKey].map((opt) => {
                   const currentVal =
                     myAvatar[currentStep.optionKey] ??
@@ -1190,18 +1191,18 @@ function AvatarEditorPortal({
             </div>
 
             {/* Compact Modal Footer */}
-            <div className="px-5 h-12 border-t border-[#F1F0EC] bg-[#FAF9F6] flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
+            <div className="px-3 sm:px-5 h-12 border-t border-[#F1F0EC] bg-[#FAF9F6] flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
                 <button
                   type="button"
                   disabled={stepIndex === 0}
                   onClick={() =>
                     setActiveStepId(EDITOR_STEPS[Math.max(0, stepIndex - 1)].id)
                   }
-                  className="h-7 px-2.5 rounded-lg border border-[#E5E4DF] bg-white text-[12px] font-medium text-[#52504A] hover:text-[#18181B] disabled:opacity-40 disabled:pointer-events-none inline-flex items-center gap-1 transition-colors"
+                  className="h-7 px-2 sm:px-2.5 rounded-lg border border-[#E5E4DF] bg-white text-[12px] font-medium text-[#52504A] hover:text-[#18181B] disabled:opacity-40 disabled:pointer-events-none inline-flex items-center gap-1 transition-colors"
                 >
                   <ArrowLeft weight="bold" className="w-3 h-3" />
-                  Anterior
+                  <span className="hidden sm:inline">Anterior</span>
                 </button>
                 <button
                   type="button"
@@ -1213,27 +1214,28 @@ function AvatarEditorPortal({
                       ].id
                     )
                   }
-                  className="h-7 px-2.5 rounded-lg border border-[#E5E4DF] bg-white text-[12px] font-medium text-[#52504A] hover:text-[#18181B] disabled:opacity-40 disabled:pointer-events-none inline-flex items-center gap-1 transition-colors"
+                  className="h-7 px-2 sm:px-2.5 rounded-lg border border-[#E5E4DF] bg-white text-[12px] font-medium text-[#52504A] hover:text-[#18181B] disabled:opacity-40 disabled:pointer-events-none inline-flex items-center gap-1 transition-colors"
                 >
-                  Siguiente
+                  <span className="hidden sm:inline">Siguiente</span>
                   <ArrowRight weight="bold" className="w-3 h-3" />
                 </button>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="h-8 px-3 rounded-lg text-[12.5px] font-medium text-[#52504A] hover:bg-[#ECEBE6] transition-colors"
+                  className="h-8 px-2 sm:px-3 rounded-lg text-[12px] sm:text-[12.5px] font-medium text-[#52504A] hover:bg-[#ECEBE6] transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="button"
                   onClick={onSaved}
-                  className="h-8 px-4 rounded-lg bg-[#18181B] text-white text-[12.5px] font-semibold hover:bg-black transition-colors"
+                  className="h-8 px-3.5 sm:px-4 rounded-xl bg-[#18181B] text-white text-[12px] sm:text-[12.5px] font-semibold hover:bg-black transition-colors shadow-2xs inline-flex items-center gap-1.5 shrink-0"
                 >
-                  Guardar
+                  <Check weight="bold" className="w-3.5 h-3.5" />
+                  <span>Guardar</span>
                 </button>
               </div>
             </div>

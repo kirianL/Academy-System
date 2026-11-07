@@ -25,6 +25,7 @@ import {
   ArrowCounterClockwise,
   ArrowUpRight,
   Signature,
+  CaretLeft,
 } from "@phosphor-icons/react";
 import {
   CommunicationMessage,
@@ -493,7 +494,12 @@ export function CommunicationsInbox({ onOpenProfile }: CommunicationsInboxProps)
       {/* 2. EXACT TWO-PANEL SPLIT COMPOSITION */}
       <div className="flex flex-col lg:flex-row gap-4 items-start w-full">
         {/* LEFT COLUMN: EMAIL LIST CARD (Fixed compact width 380px-410px, crisp and readable) */}
-        <div className="w-full lg:w-[380px] xl:w-[410px] shrink-0 bg-white border border-[#ECECE9] rounded-[20px] overflow-hidden shadow-xs flex flex-col">
+        <div
+          className={cn(
+            "w-full lg:w-[380px] xl:w-[410px] shrink-0 bg-white border border-[#ECECE9] rounded-[20px] overflow-hidden shadow-xs flex flex-col",
+            selectedMessage ? "hidden lg:flex" : "flex"
+          )}
+        >
           {/* Card Header: Checkbox + Inbox + Filter Icon */}
           <div className="px-4 py-3 border-b border-[#F4F3F0] flex items-center justify-between gap-2">
             <div className="flex items-center gap-2.5">
@@ -637,7 +643,12 @@ export function CommunicationsInbox({ onOpenProfile }: CommunicationsInboxProps)
         </div>
 
         {/* RIGHT COLUMN: READING PANE & THREAD CONVERSATION CARD */}
-        <div className="flex-1 min-w-0 w-full bg-white border border-[#ECECE9] rounded-[20px] p-6 shadow-xs flex flex-col justify-between min-h-[640px] max-h-[820px] overflow-hidden">
+        <div
+          className={cn(
+            "flex-1 min-w-0 w-full bg-white border border-[#ECECE9] rounded-[20px] p-4 sm:p-6 shadow-xs flex flex-col justify-between min-h-[500px] lg:min-h-[640px] max-h-[820px] overflow-hidden",
+            !selectedMessage ? "hidden lg:flex" : "flex"
+          )}
+        >
           {selectedMessage ? (
             <motion.div
               key={selectedMessage.id}
@@ -651,6 +662,21 @@ export function CommunicationsInbox({ onOpenProfile }: CommunicationsInboxProps)
               }}
               className="flex-1 flex flex-col min-h-0"
             >
+                {/* Mobile Back Button (Master-Detail Mobile Navigation) */}
+                <div className="lg:hidden pb-3 mb-1 border-b border-[#F4F3F0] flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedMessageId(null)}
+                    className="inline-flex items-center gap-1.5 text-[12.5px] font-medium text-[#52504A] hover:text-[#18181B] bg-[#F4F3F0] hover:bg-[#EAE8E2] px-3 py-1.5 rounded-xl transition-colors press-scale"
+                  >
+                    <CaretLeft weight="bold" className="w-3.5 h-3.5" />
+                    <span>Volver al buzón</span>
+                  </button>
+                  <span className="text-[11.5px] text-[#78756E] tabular-nums">
+                    {selectedMessage.timeLabel}
+                  </span>
+                </div>
+
                 {/* Top Action Buttons (Archive, Delete, Mark as unread, Close) */}
                 <div className="flex items-center justify-between pb-3.5 border-b border-[#F4F3F0] shrink-0">
                   <div className="flex items-center gap-2">
@@ -1253,14 +1279,14 @@ export function CommunicationsInbox({ onOpenProfile }: CommunicationsInboxProps)
       {/* 3. MODERN, NATIVE-FEELING FLOATING COMPOSE WINDOW WITH SMOOTH EXIT/ENTRANCE ANIMATION */}
       <AnimatePresence>
         {composeOpen && (
-          <div className="fixed inset-0 z-50 pointer-events-none flex items-end justify-end p-3 sm:p-6">
+          <div className="fixed inset-0 z-50 pointer-events-none flex items-end justify-end p-2 sm:p-6">
             <motion.div
               initial={{ opacity: 0, y: 20, scale: 0.98 }}
               animate={{
                 opacity: 1,
                 y: 0,
                 scale: 1,
-                height: composeMinimized ? 48 : 520,
+                height: composeMinimized ? 48 : "min(530px, calc(100dvh - 1rem))",
               }}
               exit={{
                 opacity: 0,
@@ -1274,7 +1300,7 @@ export function CommunicationsInbox({ onOpenProfile }: CommunicationsInboxProps)
                 damping: 34,
                 mass: 0.7,
               }}
-              className="pointer-events-auto w-full sm:w-[600px] md:w-[630px] max-w-[calc(100vw-2rem)] bg-white border border-[#DFDDD6] rounded-2xl shadow-floating flex flex-col overflow-hidden will-change-transform"
+              className="pointer-events-auto w-full sm:w-[600px] md:w-[630px] max-w-full sm:max-w-[calc(100vw-2rem)] bg-white border border-[#DFDDD6] rounded-2xl shadow-floating flex flex-col overflow-hidden will-change-transform"
             >
               {/* Header Bar */}
               <div className="h-12 px-4 bg-[#18181B] text-white flex items-center justify-between gap-3 shrink-0 select-none">

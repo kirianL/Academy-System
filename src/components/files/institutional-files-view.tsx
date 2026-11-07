@@ -218,12 +218,26 @@ export function InstitutionalFilesView() {
   const [files, setFiles] = React.useState<InstitutionalFile[]>(INITIAL_FILES);
   const [activeFolderId, setActiveFolderId] = React.useState<string>("f-general");
   const [sidebarOpen, setSidebarOpen] = React.useState(true);
+  const [isMobile, setIsMobile] = React.useState(false);
   const [treeTab, setTreeTab] = React.useState<"folders" | "tags">("folders");
   const [searchTreeQuery, setSearchTreeQuery] = React.useState("");
   const [fileFilterQuery, setFileFilterQuery] = React.useState("");
   const [activeTag, setActiveTag] = React.useState<string | null>(null);
   const [viewMode, setViewMode] = React.useState<"grid" | "list">("grid");
   const [rootDropdownOpen, setRootDropdownOpen] = React.useState(false);
+
+  // Responsive mobile detection
+  React.useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) setSidebarOpen(false);
+      else setSidebarOpen(true);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   // Close dropdown on outside click
   const dropdownRef = React.useRef<HTMLDivElement>(null);
@@ -453,174 +467,192 @@ export function InstitutionalFilesView() {
       {/* ==================================================================== */}
       <AnimatePresence initial={false}>
         {sidebarOpen && (
-          <motion.aside
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: 280, opacity: 1 }}
-            exit={{ width: 0, opacity: 0 }}
-            transition={{ duration: 0.2, ease: "easeInOut" }}
-            className="w-[280px] shrink-0 border-r border-[#ECEBE7] bg-[#FAF9F6] flex flex-col overflow-hidden select-none"
-          >
-            {/* Header: Title + Actions */}
-            <div className="px-4 py-3.5 flex items-center justify-between gap-2 border-b border-[#ECEBE7]">
-              <div>
-                <span className="text-[14.5px] font-semibold tracking-[-0.01em] text-[#18181B] block">
-                  Knowledge Base
-                </span>
-                <span className="text-[11px] text-[#78756E] block font-normal">
-                  Estructura Institucional
-                </span>
-              </div>
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  title="Nueva Carpeta"
-                  onClick={() => setNewFolderModalOpen(true)}
-                  className="w-7 h-7 rounded-lg hover:bg-[#EAE8E2] text-[#52504A] hover:text-[#18181B] flex items-center justify-center transition-colors"
-                >
-                  <Plus weight="bold" className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  type="button"
-                  title="Ocultar panel lateral"
-                  onClick={() => setSidebarOpen(false)}
-                  className="w-7 h-7 rounded-lg hover:bg-[#EAE8E2] text-[#78756E] hover:text-[#18181B] flex items-center justify-center transition-colors"
-                >
-                  <SidebarSimple weight="regular" className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
+          <>
+            {/* Mobile overlay backdrop */}
+            {isMobile && (
+              <motion.div
+                key="files-sidebar-backdrop"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setSidebarOpen(false)}
+                className="fixed inset-0 z-40 bg-black/35 backdrop-blur-2xs md:hidden"
+              />
+            )}
 
-            {/* Search Input */}
-            <div className="px-3 pt-3 pb-2">
-              <div className="relative">
-                <MagnifyingGlass
-                  weight="regular"
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#9C9A94]"
-                />
-                <input
-                  type="text"
-                  placeholder="Buscar carpeta..."
-                  value={searchTreeQuery}
-                  onChange={(e) => setSearchTreeQuery(e.target.value)}
-                  className="w-full pl-8 pr-3 py-1.5 text-[12.5px] bg-[#EFECE5] rounded-xl border-none outline-none focus:ring-1 focus:ring-zinc-900 text-[#18181B] placeholder-[#9C9A94] transition-all"
-                />
-              </div>
-            </div>
-
-            {/* Segmented Control: Folders | Tags */}
-            <div className="px-3 pb-3">
-              <div className="grid grid-cols-2 p-0.5 bg-[#EAE8E1] rounded-xl text-[12px] font-medium">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setTreeTab("folders");
-                    setActiveTag(null);
-                  }}
-                  className={cn(
-                    "py-1 rounded-lg text-center transition-all",
-                    treeTab === "folders"
-                      ? "bg-white text-[#18181B] shadow-2xs font-semibold"
-                      : "text-[#78756E] hover:text-[#18181B]"
-                  )}
-                >
-                  Folders
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setTreeTab("tags")}
-                  className={cn(
-                    "py-1 rounded-lg text-center transition-all",
-                    treeTab === "tags"
-                      ? "bg-white text-[#18181B] shadow-2xs font-semibold"
-                      : "text-[#78756E] hover:text-[#18181B]"
-                  )}
-                >
-                  Tags
-                </button>
-              </div>
-            </div>
-
-            {/* Tree Navigation Content */}
-            <div className="flex-1 overflow-y-auto px-2 pb-4 space-y-0.5 custom-scrollbar">
-              {treeTab === "folders" ? (
+            <motion.aside
+              key="files-sidebar-panel"
+              initial={{ x: isMobile ? -280 : 0, width: isMobile ? 280 : 0, opacity: 0 }}
+              animate={{ x: 0, width: 280, opacity: 1 }}
+              exit={{ x: isMobile ? -280 : 0, width: isMobile ? 280 : 0, opacity: 0 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+              className="fixed inset-y-0 left-0 z-50 w-[280px] md:static md:w-[280px] shrink-0 border-r border-[#ECEBE7] bg-[#FAF9F6] flex flex-col overflow-hidden select-none shadow-2xl md:shadow-none"
+            >
+              {/* Header: Title + Actions */}
+              <div className="px-4 py-3.5 flex items-center justify-between gap-2 border-b border-[#ECEBE7]">
                 <div>
-                  {rootFolders
-                    .filter((f) =>
-                      searchTreeQuery
-                        ? f.name
-                            .toLowerCase()
-                            .includes(searchTreeQuery.toLowerCase())
-                        : true
-                    )
-                    .map((rf) => (
-                      <TreeFolderItem
-                        key={rf.id}
-                        folder={rf}
-                        allFolders={folders}
-                        activeFolderId={activeFolderId}
-                        expandedFolderIds={expandedFolderIds}
-                        onSelectFolder={(id) => {
-                          setActiveFolderId(id);
-                          setActiveTag(null);
-                        }}
-                        onToggleCollapse={toggleTreeFolder}
-                      />
-                    ))}
+                  <span className="text-[14.5px] font-semibold tracking-[-0.01em] text-[#18181B] block">
+                    Knowledge Base
+                  </span>
+                  <span className="text-[11px] text-[#78756E] block font-normal">
+                    Estructura Institucional
+                  </span>
                 </div>
-              ) : (
-                /* Tags List */
-                <div className="space-y-1 pt-1">
-                  {allTagsWithCounts
-                    .filter((t) =>
-                      searchTreeQuery
-                        ? t.tag
-                            .toLowerCase()
-                            .includes(searchTreeQuery.toLowerCase())
-                        : true
-                    )
-                    .map(({ tag, count }) => {
-                      const isTagActive = activeTag === tag;
-                      return (
-                        <button
-                          key={tag}
-                          type="button"
-                          onClick={() => {
-                            setActiveTag(isTagActive ? null : tag);
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    title="Nueva Carpeta"
+                    onClick={() => setNewFolderModalOpen(true)}
+                    className="w-7 h-7 rounded-lg hover:bg-[#EAE8E2] text-[#52504A] hover:text-[#18181B] flex items-center justify-center transition-colors"
+                  >
+                    <Plus weight="bold" className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    title="Ocultar panel lateral"
+                    onClick={() => setSidebarOpen(false)}
+                    className="w-7 h-7 rounded-lg hover:bg-[#EAE8E2] text-[#78756E] hover:text-[#18181B] flex items-center justify-center transition-colors"
+                  >
+                    <SidebarSimple weight="regular" className="w-4 h-4 hidden md:block" />
+                    <X weight="bold" className="w-4 h-4 md:hidden" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Search Input */}
+              <div className="px-3 pt-3 pb-2">
+                <div className="relative">
+                  <MagnifyingGlass
+                    weight="regular"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#9C9A94]"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Buscar carpeta..."
+                    value={searchTreeQuery}
+                    onChange={(e) => setSearchTreeQuery(e.target.value)}
+                    className="w-full pl-8 pr-3 py-1.5 text-[12.5px] bg-[#EFECE5] rounded-xl border-none outline-none focus:ring-1 focus:ring-zinc-900 text-[#18181B] placeholder-[#9C9A94] transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* Segmented Control: Folders | Tags */}
+              <div className="px-3 pb-3">
+                <div className="grid grid-cols-2 p-0.5 bg-[#EAE8E1] rounded-xl text-[12px] font-medium">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTreeTab("folders");
+                      setActiveTag(null);
+                    }}
+                    className={cn(
+                      "py-1 rounded-lg text-center transition-all",
+                      treeTab === "folders"
+                        ? "bg-white text-[#18181B] shadow-2xs font-semibold"
+                        : "text-[#78756E] hover:text-[#18181B]"
+                    )}
+                  >
+                    Folders
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTreeTab("tags")}
+                    className={cn(
+                      "py-1 rounded-lg text-center transition-all",
+                      treeTab === "tags"
+                        ? "bg-white text-[#18181B] shadow-2xs font-semibold"
+                        : "text-[#78756E] hover:text-[#18181B]"
+                    )}
+                  >
+                    Tags
+                  </button>
+                </div>
+              </div>
+
+              {/* Tree Navigation Content */}
+              <div className="flex-1 overflow-y-auto px-2 pb-4 space-y-0.5 custom-scrollbar">
+                {treeTab === "folders" ? (
+                  <div>
+                    {rootFolders
+                      .filter((f) =>
+                        searchTreeQuery
+                          ? f.name
+                              .toLowerCase()
+                              .includes(searchTreeQuery.toLowerCase())
+                          : true
+                      )
+                      .map((rf) => (
+                        <TreeFolderItem
+                          key={rf.id}
+                          folder={rf}
+                          allFolders={folders}
+                          activeFolderId={activeFolderId}
+                          expandedFolderIds={expandedFolderIds}
+                          onSelectFolder={(id) => {
+                            setActiveFolderId(id);
+                            setActiveTag(null);
+                            if (isMobile) setSidebarOpen(false);
                           }}
-                          className={cn(
-                            "w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-left text-[12.5px] transition-colors",
-                            isTagActive
-                              ? "bg-[#18181B] text-white font-medium"
-                              : "text-[#4A4843] hover:bg-[#ECE9E1]"
-                          )}
-                        >
-                          <div className="flex items-center gap-2 truncate">
-                            <Tag
-                              weight={isTagActive ? "fill" : "regular"}
-                              className={cn(
-                                "w-3.5 h-3.5 shrink-0",
-                                isTagActive ? "text-white" : "text-[#78756E]"
-                              )}
-                            />
-                            <span className="truncate">{tag}</span>
-                          </div>
-                          <span
+                          onToggleCollapse={toggleTreeFolder}
+                        />
+                      ))}
+                  </div>
+                ) : (
+                  /* Tags List */
+                  <div className="space-y-1 pt-1">
+                    {allTagsWithCounts
+                      .filter((t) =>
+                        searchTreeQuery
+                          ? t.tag
+                              .toLowerCase()
+                              .includes(searchTreeQuery.toLowerCase())
+                          : true
+                      )
+                      .map(({ tag, count }) => {
+                        const isTagActive = activeTag === tag;
+                        return (
+                          <button
+                            key={tag}
+                            type="button"
+                            onClick={() => {
+                              setActiveTag(isTagActive ? null : tag);
+                              if (isMobile) setSidebarOpen(false);
+                            }}
                             className={cn(
-                              "text-[11px] px-1.5 py-0.2 rounded-md tabular-nums font-mono",
+                              "w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-left text-[12.5px] transition-colors",
                               isTagActive
-                                ? "bg-white/20 text-white"
-                                : "bg-[#ECE9E1] text-[#78756E]"
+                                ? "bg-[#18181B] text-white font-medium"
+                                : "text-[#4A4843] hover:bg-[#ECE9E1]"
                             )}
                           >
-                            {count}
-                          </span>
-                        </button>
-                      );
-                    })}
-                </div>
-              )}
-            </div>
-          </motion.aside>
+                            <div className="flex items-center gap-2 truncate">
+                              <Tag
+                                weight={isTagActive ? "fill" : "regular"}
+                                className={cn(
+                                  "w-3.5 h-3.5 shrink-0",
+                                  isTagActive ? "text-white" : "text-[#78756E]"
+                                )}
+                              />
+                              <span className="truncate">{tag}</span>
+                            </div>
+                            <span
+                              className={cn(
+                                "text-[11px] px-1.5 py-0.2 rounded-md tabular-nums font-mono",
+                                isTagActive
+                                  ? "bg-white/20 text-white"
+                                  : "bg-[#ECE9E1] text-[#78756E]"
+                              )}
+                            >
+                              {count}
+                            </span>
+                          </button>
+                        );
+                      })}
+                  </div>
+                )}
+              </div>
+            </motion.aside>
+          </>
         )}
       </AnimatePresence>
 
@@ -644,14 +676,14 @@ export function InstitutionalFilesView() {
         }}
       >
         {/* Top Header / Breadcrumb Bar (Matching General Knowledge v) */}
-        <header className="sticky top-0 z-20 bg-white/95 backdrop-blur-md px-8 py-3.5 border-b border-[#ECEBE7] flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
+        <header className="sticky top-0 z-20 bg-white/95 backdrop-blur-md px-4 sm:px-8 py-3.5 border-b border-[#ECEBE7] flex items-center justify-between gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             {!sidebarOpen && (
               <button
                 type="button"
                 title="Mostrar panel lateral"
                 onClick={() => setSidebarOpen(true)}
-                className="w-8 h-8 rounded-xl hover:bg-[#F4F3EE] text-[#52504A] hover:text-[#18181B] flex items-center justify-center transition-colors mr-1"
+                className="w-8 h-8 rounded-xl hover:bg-[#F4F3EE] text-[#52504A] hover:text-[#18181B] flex items-center justify-center transition-colors mr-1 shrink-0"
               >
                 <SidebarSimple weight="regular" className="w-4 h-4" />
               </button>
@@ -666,16 +698,16 @@ export function InstitutionalFilesView() {
                   setActiveFolderId(parentFolder.id);
                   setActiveTag(null);
                 }}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[12px] font-medium text-[#52504A] hover:text-[#18181B] bg-[#F4F3EE] hover:bg-[#EAE8E1] transition-colors"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[12px] font-medium text-[#52504A] hover:text-[#18181B] bg-[#F4F3EE] hover:bg-[#EAE8E1] transition-colors shrink-0"
               >
                 <ArrowBendUpLeft weight="bold" className="w-3.5 h-3.5" />
-                <span>Volver</span>
+                <span className="hidden sm:inline">Volver</span>
               </button>
             )}
 
             {/* Root Selector Dropdown / Breadcrumb Hierarchy Navigation */}
-            <div className="relative" ref={dropdownRef}>
-              <div className="flex items-center gap-1.5 text-[15px] font-semibold text-[#18181B]">
+            <div className="relative min-w-0" ref={dropdownRef}>
+              <div className="flex items-center gap-1 sm:gap-1.5 text-[14px] sm:text-[15px] font-semibold text-[#18181B] truncate">
                 {breadcrumbPath.map((folder, index) => {
                   const isLast = index === breadcrumbPath.length - 1;
                   const isRoot = index === 0;
@@ -699,16 +731,16 @@ export function InstitutionalFilesView() {
                           }
                         }}
                         className={cn(
-                          "flex items-center gap-1 hover:text-black transition-colors rounded-lg px-1.5 py-0.5",
+                          "flex items-center gap-1 hover:text-black transition-colors rounded-lg px-1.5 py-0.5 truncate",
                           isLast ? "text-[#18181B] font-semibold" : "text-[#78756E]"
                         )}
                       >
-                        <span>{folder.name}</span>
+                        <span className="truncate">{folder.name}</span>
                         {isRoot && (
                           <CaretDown
                             weight="bold"
                             className={cn(
-                              "w-3 h-3 text-[#78756E] ml-0.5 transition-transform",
+                              "w-3 h-3 text-[#78756E] ml-0.5 transition-transform shrink-0",
                               rootDropdownOpen && "rotate-180"
                             )}
                           />
@@ -841,25 +873,26 @@ export function InstitutionalFilesView() {
             <button
               type="button"
               onClick={() => setNewFolderModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#ECEBE7] bg-[#FAF9F6] hover:bg-[#F3F2ED] text-[12.5px] font-medium text-[#18181B] transition-colors"
+              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border border-[#ECEBE7] bg-[#FAF9F6] hover:bg-[#F3F2ED] text-[12.5px] font-medium text-[#18181B] transition-colors"
             >
               <Plus weight="bold" className="w-3.5 h-3.5" />
-              <span>Nueva Carpeta</span>
+              <span className="hidden sm:inline">Nueva Carpeta</span>
             </button>
 
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#18181B] hover:bg-black text-[12.5px] font-medium text-white shadow-xs transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-xl bg-[#18181B] hover:bg-black text-[12.5px] font-medium text-white shadow-xs transition-colors"
             >
               <UploadSimple weight="bold" className="w-3.5 h-3.5" />
-              <span>Subir Archivo</span>
+              <span className="hidden sm:inline">Subir Archivo</span>
+              <span className="sm:hidden">Subir</span>
             </button>
           </div>
         </header>
 
         {/* Content Body */}
-        <div className="p-8 sm:p-10 space-y-10 max-w-7xl">
+        <div className="p-4 sm:p-8 md:p-10 space-y-6 sm:space-y-10 max-w-7xl">
           {/* Active Folder Context Bar (Explaining current location & purpose) */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1 border-b border-[#F0EEEA]">
             <div>
